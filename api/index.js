@@ -8,10 +8,6 @@ const auth = require('./middleware/auth');
 const errorHandler = require('./middleware/errorHandler');
 const asin = require('./asinHandler');
 
-
-//https://lauriane-enterpreneur.herokuapp.com/
-
-
 //api wide middleware
 apiApp.use(morgan('combined'));
 apiApp.use(cors());

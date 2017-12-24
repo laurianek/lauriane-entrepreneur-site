@@ -86,7 +86,7 @@ function processAsins(reqId, asins, url) {
       function onError() {},
       () => {
       openRequests[reqId].isCompleted = true;
-      // console.log('completed', openRequests[reqId])
+      console.log('completed', reqId);
     })
 }
 
