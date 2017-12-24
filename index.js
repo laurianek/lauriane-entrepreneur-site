@@ -1,9 +1,11 @@
-var express = require('express');
-var app = express();
+const express = require('express');
+const app = express();
+const api = require('./api');
 
 app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/public'));
+app.use('/api', api);
 
 // views is directory for all template files
 app.set('views', __dirname + '/views');
