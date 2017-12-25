@@ -72,6 +72,10 @@ function processAsins(reqId, asins, url) {
           });
       });
 
+      // clear memory...
+      $('html').empty();
+      $ = undefined;
+
       return { description, asin, site, price, category, rank };
     })
     .catch(e => {
