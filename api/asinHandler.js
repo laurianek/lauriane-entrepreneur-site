@@ -82,6 +82,8 @@ function processAsins(reqId, asins, url) {
       details => {
         if (!details.asin) return;
         openRequests[reqId].asins[details.asin] = details;
+        console.log('complete…', reqId,
+          Object.keys(openRequests[reqId].asins).length, 'out of', asins.length);
       },
       function onError() {},
       () => {
