@@ -57,7 +57,7 @@ function processAsins(reqId, asins, url) {
       const salePrice = $dp.find('#price #priceblock_saleprice_lbl');
 
       price = salePrice[0] ? salePrice : tempPrice;
-      if (price) {
+      if (price[0]) {
         price = price.next().text()
           .trim().replace(/\s+/, ' ').match(/£\d+.?\d+\b/g)
           .reduce((total, price) => Number(price.substring(1)) + total, 0);
