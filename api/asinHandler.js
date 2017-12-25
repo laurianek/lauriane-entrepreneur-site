@@ -33,14 +33,13 @@ function getRequestStatus(req, res) {
 }
 
 function processAsins(reqId, asins, url) {
+  let $;
   Observable.from(asins)
-    .mergeMap(asin => {
-      return Observable.fromPromise(rp({
-        url: url + '/' + asin,
-        transform: body => cheerio.load(body)
-      })).map($ => ({ $, asin }))
-    })
-    .map(({ $, asin }) => {
+    .mergeMap(asin =>
+      Observable.fromPromise(rp(url + '/' + asin))
+        .map(body => ({ body, asin })))
+    .map(({ body, asin }) => {
+      $ = cheerio.load(body);
       const $dp = $('#dp');
       if (!$dp[0]) throw new Error('Not on product page');
 
@@ -61,7 +60,7 @@ function processAsins(reqId, asins, url) {
         price = price.next().text()
           .trim().replace(/\s+/, ' ').match(/£\d+.?\d+\b/g)
           .reduce((total, price) => Number(price.substring(1)) + total, 0);
-      }
+      } else price = undefined;
 
       $dp.find('td.label').each((i, item) => {
         if ($(item).text().toLowerCase() !== 'best sellers rank') return;
