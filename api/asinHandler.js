@@ -109,10 +109,6 @@ function processAsins(reqId, asins, url) {
 
       return { description, asin, site, price, category, rank };
     })
-    .catch(e => {
-      console.error(e);
-      return {};
-    })
     .subscribe(
       details => {
         if (!details.asin) return;
@@ -120,7 +116,10 @@ function processAsins(reqId, asins, url) {
         console.log('complete…', reqId,
           Object.keys(openRequests[reqId].asins).length, 'out of', asins.length);
       },
-      function onError() {},
+      (e) => {
+        console.error(e);
+        openRequests[reqId].hasError = true;
+      },
       () => {
       openRequests[reqId].isCompleted = true;
       console.log('completed', reqId);
