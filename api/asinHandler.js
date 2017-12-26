@@ -43,10 +43,11 @@ function processAsins(reqId, asins, url) {
   let $;
   Observable.from(asins)
     .mergeMap(asin =>
-      Observable.fromPromise(rp(url + '/' + asin))
-        .map(body => ({ body, asin })))
-    .map(({ body, asin }) => {
-      $ = cheerio.load(body);
+      Observable.fromPromise(rp({
+        url: url + '/' + asin,
+        transform: body => cheerio.load(body)
+      })).map($ => ({ $, asin })))
+    .map(({ $, asin }) => {
       const $dp = $('#dp');
       if (!$dp[0]) throw new Error('Not on product page');
 
