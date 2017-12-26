@@ -1,7 +1,7 @@
 const shortid = require('shortid');
 const Observable = require('rxjs').Observable;
-const rp = require('request-promise');
 const cheerio = require('cheerio');
+const puppeteer = require('puppeteer');
 
 const openRequests = {};
 
@@ -17,7 +17,6 @@ function getAsinDetails(req, res) {
     asins: {}
   };
   res.status(202).send(reqId); // respond with req id
-  console.log(url);
   processAsins(reqId, asins, url);
 }
 
@@ -33,12 +32,25 @@ function getRequestStatus(req, res) {
 }
 
 function processAsins(reqId, asins, url) {
-  let $;
-  Observable.from(asins)
-    .mergeMap(asin =>
-      Observable.fromPromise(rp(url + '/' + asin))
-        .map(body => ({ body, asin })))
-    .map(({ body, asin }) => {
+  let $, browser;
+  console.log('pumkin let`s start…');
+
+  Observable.fromPromise(puppeteer.launch())
+    .do(() => console.log('browser launched…'))
+    .switchMap(_browser =>
+      Observable.from(asins).mergeMap(asin => {
+        browser = _browser;
+        return Observable.fromPromise(browser.newPage())
+          .do(() => console.log('new page launched…'))
+          .switchMap(page =>
+            Observable.fromPromise(page.goto(url + '/' + asin, {waitUntil: 'domcontentloaded'}))
+              .switchMap(() => Observable.fromPromise(page.content()))
+              .map(body => ({ body, asin, page }))
+          )
+      })
+    )
+    .map(({ body, asin, page }) => {
+      console.log('hey hey got this far', asin, !!page, typeof body);
       $ = cheerio.load(body);
       const $dp = $('#dp');
       if (!$dp[0]) throw new Error('Not on product page');
@@ -57,8 +69,10 @@ function processAsins(reqId, asins, url) {
 
       price = salePrice[0] ? salePrice : tempPrice;
       if (price[0]) {
-        price = price.next().text()
-          .trim().replace(/\s+/, ' ').match(/£\d+.?\d+\b/g)
+        console.log(asin, price.next().text().trim().replace(/\s+/, ' '));
+        price = price.next().text().trim().replace(/\s+/, ' ').split('FREE')[0];
+        console.log(price, '\n',price.match(/£\d+.?\d+\b/g));
+        price = price.match(/£\d+.?\d+\b/g)
           .reduce((total, price) => Number(price.substring(1)) + total, 0);
       } else price = undefined;
 
@@ -74,25 +88,29 @@ function processAsins(reqId, asins, url) {
       // clear memory...
       $('html').empty();
       $ = undefined;
+      page.close();
 
       return { description, asin, site, price, category, rank };
     })
     .catch(e => {
-      console.error(e);
-      return {};
-    })
+        console.error(e);
+        return {};
+      })
     .subscribe(
       details => {
+        // console.log(details);
         if (!details.asin) return;
         openRequests[reqId].asins[details.asin] = details;
         console.log('complete…', reqId,
           Object.keys(openRequests[reqId].asins).length, 'out of', asins.length);
       },
-      function onError() {},
+      () => {},
       () => {
       openRequests[reqId].isCompleted = true;
-      console.log('completed', reqId);
-    })
+      console.log('completed', reqId, openRequests[reqId].asins);
+      browser.close();
+      browser = undefined;
+    });
 }
 
 module.exports = {
