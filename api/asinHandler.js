@@ -78,12 +78,30 @@ function processAsins(reqId, asins, url) {
 
       $dp.find('td.label').each((i, item) => {
         if ($(item).text().toLowerCase() !== 'best sellers rank') return;
-        $(item).next().text().split('(')[0].split('in')
+        $(item).next().text().split('(')[0].split(' in ')
           .forEach((text, i) => {
             if (i === 0) rank = parseInt(text.match(/\d+/g).join(''));
             if (i === 1) category = text.trim().toLowerCase();
           });
       });
+      (() => {
+        let $dpOddDetails;
+        if (!rank || !category) {
+          $('.bucket').each((i, item) => {
+            if ($(item).find('h2').text().toLowerCase() === 'product details') $dpOddDetails = $(item);
+          });
+        }
+        if (!$dpOddDetails) return;
+        $dpOddDetails.find('li').each((i, li) => {
+          const d = $(li).text().trim().split(':').map(a => a.trim());
+          if (d[0].toLowerCase() === 'amazon bestsellers rank') {
+            d[1].split('(')[0].split(' in ').forEach((text, i) => {
+              if (i === 0) rank = parseInt(text.match(/\d+/g).join(''));
+              if (i === 1) category = text.trim().toLowerCase();
+            });
+          }
+        });
+      })();
 
       // clear memory...
       $('html').empty();
