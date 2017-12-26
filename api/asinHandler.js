@@ -33,9 +33,10 @@ function getRequestStatus(req, res) {
 }
 
 function getPrice($el) {
-  return $el.text().trim().replace(/\s+/g, ' ').split('FREE')[0]
-    .match(/£\d+.?\d+\b/g)
-    .reduce((total, price) => Number(price.substring(1)) + total, 0)
+  const inter = $el.text().trim().replace(/\s+/g, ' ').split('FREE')[0]
+    .match(/£\d+.?\d+\b/g);
+  if (!inter || inter.length === 0) return undefined;
+  return inter.reduce((total, price) => Number(price.substring(1)) + total, 0);
 }
 
 function processAsins(reqId, asins, url) {
@@ -72,7 +73,7 @@ function processAsins(reqId, asins, url) {
 
       if (buyBoxPrice) {
         buyBoxPrice = getPrice($(buyBoxPrice));
-        price = buyBoxPrice > price ? buyBoxPrice : price;
+        price = buyBoxPrice && (buyBoxPrice > price) ? buyBoxPrice : price;
       }
 
       $dp.find('td.label').each((i, item) => {
