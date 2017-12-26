@@ -40,7 +40,8 @@ function getPrice($el) {
 }
 
 function processAsins(reqId, asins, url) {
-  let $;
+  let $, i = 0;
+  const numberOfAsins = asins.length;
   Observable.from(asins)
     .mergeMap(asin =>
       Observable.fromPromise(rp(url + '/' + asin))
@@ -116,7 +117,8 @@ function processAsins(reqId, asins, url) {
       details => {
         if (!details.asin) return;
         openRequests[reqId].asins[details.asin] = details;
-        console.log('completing…', reqId);
+        i++;
+        console.log('completing…', reqId, i, 'out of', numberOfAsins);
       },
       (e) => {
         console.error(e);
