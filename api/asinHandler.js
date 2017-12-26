@@ -60,9 +60,13 @@ function processAsins(reqId, asins, url) {
 
       const $tempPrice = $dp.find('#price #priceblock_ourprice_lbl');
       const $salePrice = $dp.find('#price #priceblock_saleprice_lbl');
+      const $dealPrice = $dp.find('#price #priceblock_dealprice_lbl');
       let buyBoxPrice = $dp.find('#buybox #soldByThirdParty')[0];
 
-      price = $salePrice[0] ? $salePrice : $tempPrice;
+      if ($dealPrice[0]) price = $dealPrice;
+      else if ($salePrice[0]) price = $salePrice;
+      else price = $tempPrice;
+
       if (price[0]) price = getPrice(price.next());
       else price = undefined;
 
