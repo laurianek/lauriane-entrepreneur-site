@@ -58,7 +58,8 @@ function processAsins(reqId, asins, url) {
       price = salePrice[0] ? salePrice : tempPrice;
       if (price[0]) {
         price = price.next().text()
-          .trim().replace(/\s+/, ' ').match(/£\d+.?\d+\b/g)
+          .trim().replace(/\s+/, ' ').split('FREE')[0]
+          .match(/£\d+.?\d+\b/g)
           .reduce((total, price) => Number(price.substring(1)) + total, 0);
       } else price = undefined;
 
