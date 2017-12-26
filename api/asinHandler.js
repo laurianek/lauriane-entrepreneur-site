@@ -32,6 +32,12 @@ function getRequestStatus(req, res) {
   if (payload.isCompleted) delete openRequests[id];
 }
 
+function getPrice($el) {
+  return $el.text().trim().replace(/\s+/g, ' ').split('FREE')[0]
+    .match(/£\d+.?\d+\b/g)
+    .reduce((total, price) => Number(price.substring(1)) + total, 0)
+}
+
 function processAsins(reqId, asins, url) {
   let $;
   Observable.from(asins)
@@ -52,16 +58,18 @@ function processAsins(reqId, asins, url) {
       description = $dp.find('#title #productTitle').text()
         .trim().replace(/\d+[^\s]*\s/g, '').substring(0, 50);
 
-      const tempPrice = $dp.find('#price #priceblock_ourprice_lbl');
-      const salePrice = $dp.find('#price #priceblock_saleprice_lbl');
+      const $tempPrice = $dp.find('#price #priceblock_ourprice_lbl');
+      const $salePrice = $dp.find('#price #priceblock_saleprice_lbl');
+      let buyBoxPrice = $dp.find('#buybox #soldByThirdParty')[0];
 
-      price = salePrice[0] ? salePrice : tempPrice;
-      if (price[0]) {
-        price = price.next().text()
-          .trim().replace(/\s+/, ' ').split('FREE')[0]
-          .match(/£\d+.?\d+\b/g)
-          .reduce((total, price) => Number(price.substring(1)) + total, 0);
-      } else price = undefined;
+      price = $salePrice[0] ? $salePrice : $tempPrice;
+      if (price[0]) price = getPrice(price.next());
+      else price = undefined;
+
+      if (buyBoxPrice) {
+        buyBoxPrice = getPrice($(buyBoxPrice));
+        price = buyBoxPrice > price ? buyBoxPrice : price;
+      }
 
       $dp.find('td.label').each((i, item) => {
         if ($(item).text().toLowerCase() !== 'best sellers rank') return;
