@@ -48,6 +48,7 @@ function processAsins(reqId, asins, url) {
         transform: body => cheerio.load(body)
       })).map($ => ({ $, asin })))
     .map(({ $, asin }) => {
+      console.log('processing asin', asin, !!$);
       const $dp = $('#dp');
       if (!$dp[0]) throw new Error('Not on product page');
 
