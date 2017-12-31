@@ -1,8 +1,12 @@
 const express = require('express');
+const http = require('http');
 const app = express();
 const api = require('./api');
+const webSocketApi = require('./api/asinSocketHandler');
 
+const server = http.createServer(app);
 app.set('port', (process.env.PORT || 5000));
+webSocketApi(server);
 
 app.use(express.static(__dirname + '/public'));
 app.use('/api', api);
@@ -15,6 +19,6 @@ app.get('/', function(request, response) {
   response.render('pages/index');
 });
 
-app.listen(app.get('port'), function() {
+server.listen(app.get('port'), function() {
   console.log('Node app is running on port', app.get('port'));
 });
